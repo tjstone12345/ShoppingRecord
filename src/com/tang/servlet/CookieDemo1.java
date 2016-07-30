@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,12 +33,23 @@ public class CookieDemo1 extends HttpServlet {
 		Map<String, Book> map = DB.getAll();
 		for(Map.Entry<String, Book> entry:map.entrySet()){
 			Book book = entry.getValue();
-			out.print("<a href='/ShoppingRecord/CookieDemo2?id="+book.getId()+"' target='_blank'>" + book.getName() + "</a><br/>");	
+			out.print("<a href='/ShoppingRecord/CookieDemo2?id="+ book.getId()+"' >" + book.getName() + "</a><br/>");	
 		}
 		
 		
 		// 2. 显示已经游览过的商品
-
+  out.print("<br/> 您曾经看过如下商品 <br/>");
+		Cookie[] cookies = request.getCookies();
+		for (int i=0; cookies!=null && i<cookies.length; i++){
+			if(cookies[i].getName().equals("bookHistory")){
+				String[] ids = cookies[i].getValue().split("\\,"); //2，3，1
+				for(String id:ids){
+					Book book = (Book)DB.getAll().get(id); 
+					out.print(book.getName()+ "<br/>");
+				}
+			}
+		}
+		
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -48,7 +60,7 @@ public class CookieDemo1 extends HttpServlet {
 }
 
 class DB {
-	private static HashMap<String, Book> map = new LinkedHashMap();
+	private static HashMap<String, Book> map = new LinkedHashMap<String, Book>();
 	static {
 		map.put("1", new Book("1", "Java Web开发", "老张", "一本好书！！！"));
 		map.put("2", new Book("2", "Java SE开发", "唐建", "一本好书！！！"));
@@ -57,7 +69,7 @@ class DB {
 		map.put("5", new Book("5", "Java Struts开发", "宋鸽", "一本好书！！！"));
 	}
 
-	public static Map getAll() {
+	public static Map<String, Book> getAll() {
 		return map;
 	}
 }
